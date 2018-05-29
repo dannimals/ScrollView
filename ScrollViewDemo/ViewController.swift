@@ -35,7 +35,8 @@ class ImageScrollView: UIScrollView {
 //        zoomView?.image = image
 //        addSubview(zoomView!)
 
-        tilingView = TilingView(image: #imageLiteral(resourceName: "maincoon"), frame: self.bounds)
+        let image = #imageLiteral(resourceName: "maincoon")
+        tilingView = TilingView(image: #imageLiteral(resourceName: "maincoon"), frame: CGRect(origin: .zero, size: image.size))
         addSubview(tilingView!)
 
         configureFor(tilingView!.bounds.size)
@@ -50,7 +51,7 @@ class ImageScrollView: UIScrollView {
 
     private func setMaxMinZoomScaleForCurrentBounds() {
         let boundsSize = bounds.size
-        let imageSize = zoomView?.bounds.size ?? CGSize.zero
+        let imageSize = tilingView?.bounds.size ?? CGSize.zero
 
         let xScale =  boundsSize.width  / imageSize.width
         let yScale = boundsSize.height / imageSize.height
@@ -70,8 +71,8 @@ class ImageScrollView: UIScrollView {
             maxScale = max(1.0, minScale)
         }
 
-        self.maximumZoomScale = maxScale
-        self.minimumZoomScale = minScale
+        self.maximumZoomScale = 2//maxScale
+        self.minimumZoomScale = 0.5//minScale
     }
 
     private func placeholderImage(for url: URL) -> UIImage? {
@@ -83,7 +84,7 @@ class ImageScrollView: UIScrollView {
 
     private func centerImageView() {
         let boundsSize = bounds.size
-        var frameToCenter = zoomView?.frame ?? CGRect.zero
+        var frameToCenter = tilingView?.frame ?? CGRect.zero
 
         if frameToCenter.size.width < boundsSize.width {
             frameToCenter.origin.x = (boundsSize.width - frameToCenter.width) / 2
@@ -97,7 +98,7 @@ class ImageScrollView: UIScrollView {
             frameToCenter.origin.y = 0
         }
 
-        zoomView?.frame = frameToCenter
+        tilingView?.frame = frameToCenter
     }
 
     override func layoutSubviews() {
@@ -112,7 +113,7 @@ class ImageScrollView: UIScrollView {
 extension ImageScrollView: UIScrollViewDelegate {
 
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-        return zoomView
+        return tilingView
     }
 
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
@@ -144,7 +145,7 @@ class TileManager {
 
         for row in firstRow...lastRow {
             for col in firstCol...lastCol {
-                let tileImageRect = CGRect(x: tileSize.width * CGFloat(row), y: tileSize.height * CGFloat(col), width: tileSize.width, height: tileSize.height)
+                let tileImageRect = CGRect(x: tileSize.width * CGFloat(col), y: tileSize.height * CGFloat(row), width: tileSize.width, height: tileSize.height)
                 guard let tileImage = cgImage.cropping(to: tileImageRect),
                     let imageData = UIImagePNGRepresentation(UIImage(cgImage: tileImage)) else { continue }
                 let imagePathComponent = "TiledImages-\(prefix)-\(row)-\(col)"//String(format: "%f/%@%d_%d.png", "TiledImages", prefix, row, col)
@@ -156,8 +157,9 @@ class TileManager {
 
     func tileFor(scale: CGFloat, row: Int, col: Int) -> UIImage? {
         let prefix = Int(scale * 1000)
-        let imagePath = "TiledImages-\(prefix)-\(row)-\(col)"//String(format: "%f/%@%d_%d.png", "TiledImages", prefix, row, col)
-        return UIImage(contentsOfFile: imagePath)
+        let imagePathComponent = "TiledImages-\(prefix)-\(row)-\(col)"//String(format: "%f/%@%d_%d.png", "TiledImages", prefix, row, col)
+        let fileManagerPath = documentsDirectory.appendingPathComponent(imagePathComponent).path
+        return UIImage(contentsOfFile: fileManagerPath)
     }
 
 }
