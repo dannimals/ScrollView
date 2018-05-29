@@ -26,7 +26,7 @@ class ImageScrollView: UIScrollView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        self.delegate = self
+        self.delegate = self // TODO: Consider placing this in VC
     }
 
     func displayTiledImage(in url: URL, size imageSize: CGSize) {
@@ -39,7 +39,7 @@ class ImageScrollView: UIScrollView {
         zoomView?.image = image
         addSubview(zoomView!)
 
-        tilingView = TilingView(url: url, size: imageSize)
+        tilingView = TilingView(image: UIImage(), frame: CGRect.zero)
         zoomView?.addSubview(tilingView!)
 
         configureFor(imageSize)
@@ -125,10 +125,48 @@ extension ImageScrollView: UIScrollViewDelegate {
 
 }
 
+class TileManager {
+
+    private lazy var documentsDirectory: URL = {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }()
+
+    private let image: UIImage
+
+    init(image: UIImage) {
+        self.image = image
+    }
+
+    func saveTiles(ofSize tileSize: CGSize, forRect rect: CGRect, toDirectory directoryPath: String, usingPrefix prefix: String) {
+        guard let cgImage = image.cgImage else { return }
+
+        let firstCol = Int(floor(rect.minX / tileSize.width))
+        let lastCol = Int(floor((rect.maxX - 1) / tileSize.width))
+        let firstRow = Int(floor(rect.minY / tileSize.height))
+        let lastRow = Int(floor((rect.maxY - 1) / tileSize.height))
+
+        for row in firstRow...lastRow {
+            for col in firstCol...lastCol {
+                let tileImageRect = CGRect(x: tileSize.width * CGFloat(row), y: tileSize.height * CGFloat(col), width: tileSize.width, height: tileSize.height)
+                guard let tileImage = cgImage.cropping(to: tileImageRect),
+                    let imageData = UIImagePNGRepresentation(UIImage(cgImage: tileImage)) else { continue }
+                let imagePathComponent = String(format: "%@/%@%d_%d.png", directoryPath, prefix, row, col)
+                let fileManagerPath = documentsDirectory.appendingPathComponent(imagePathComponent)
+                try? imageData.write(to: fileManagerPath)
+            }
+        }
+    }
+
+    func tileFor(scale: CGFloat, row: Int, col: Int) -> UIImage? {
+        return nil
+    }
+
+}
+
 class TilingView: UIView {
 
-    let imageName: String
-    let url: URL
+    private let tileManager: TileManager
 
     override static var layerClass: AnyClass {
         return CATiledLayer.self
@@ -144,11 +182,10 @@ class TilingView: UIView {
         return self.layer as! CATiledLayer
     }
 
-    required init(url: URL, size: CGSize) {
-        self.url = url
-        self.imageName = url.deletingPathExtension().lastPathComponent
+    required init(image: UIImage, frame: CGRect) {
+        self.tileManager = TileManager(image: image)
+        super.init(frame: frame)
 
-        super.init(frame: CGRect(x: 0, y: 0, width: size.width, height: size.height))
         tiledLayer.levelsOfDetail = 4
     }
 
@@ -169,7 +206,7 @@ class TilingView: UIView {
 
         for row in firstRow...lastRow {
             for col in firstCol...lastCol {
-                guard let tile = tileFor(scale: scaleX, row: row, col: col) else { return }
+                guard let tile = tileManager.tileFor(scale: scaleX, row: row, col: col) else { return }
                 var tileRect = CGRect(x: tileSize.width * CGFloat(col), y: tileSize.height * CGFloat(row), width: tileSize.width, height: tileSize.height)
                 tileRect = self.bounds.intersection(tileRect)
                 tile.draw(in: tileRect)
@@ -181,15 +218,6 @@ class TilingView: UIView {
                 }
             }
         }
-    }
-
-    func tileFor(scale: CGFloat, row: Int, col: Int) -> UIImage? {
-        let scale = scale < 1.0 ? Int(1 / CGFloat(Int(1 / scale)) * 1000) : Int(scale * 1000)
-        let tileName = "\(self.imageName)_\(scale)_\(col)_\(row).png"
-        let path = url.appendingPathComponent(tileName).path
-        let image = UIImage(contentsOfFile: path)
-
-        return image
     }
 
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
