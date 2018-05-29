@@ -84,7 +84,7 @@ class TilingView: UIView {
         }
     }
 
-    var tiledLayer: CATiledLayer {
+    private var tiledLayer: CATiledLayer {
         return self.layer as! CATiledLayer
     }
 
@@ -100,29 +100,40 @@ class TilingView: UIView {
         guard let currentContext = UIGraphicsGetCurrentContext(), let tiledLayer = self.layer as? CATiledLayer
             else { return }
 
-        let scale = currentContext.ctm.a
+        let scaleX: CGFloat = currentContext.ctm.a
+        let scaleY: CGFloat = currentContext.ctm.d
         var tileSize = tiledLayer.tileSize
-        tileSize.width /= scale
-        tileSize.height /= scale
+        tileSize.width /= scaleX
+        tileSize.height /= -scaleY
 
-        let firstCol = floor(rect.minX / tileSize.width)
-        let lastCol = floor((rect.maxX - 1) / tileSize.width)
-        let firstRow = floor(rect.minY / tileSize.height)
-        let lastRow = floor((rect.maxY - 1) / tileSize.height)
+        let firstCol = Int(floor(rect.minX / tileSize.width))
+        let lastCol = Int(floor((rect.maxX - 1) / tileSize.width))
+        let firstRow = Int(floor(rect.minY / tileSize.height))
+        let lastRow = Int(floor((rect.maxY - 1) / tileSize.height))
 
-        for row in Int(firstRow)...Int(lastRow) {
-            for col in Int(firstCol)...Int(lastCol) {
-                let tile = tileForScale(scale, row: row, col: col)
+        for row in firstRow...lastRow {
+            for col in firstCol...lastCol {
+                guard let tile = tileFor(scale: scaleX, row: row, col: col) else { return }
                 var tileRect = CGRect(x: tileSize.width * CGFloat(col), y: tileSize.height * CGFloat(row), width: tileSize.width, height: tileSize.height)
                 tileRect = self.bounds.intersection(tileRect)
                 tile.draw(in: tileRect)
+
+                if true {
+                    UIColor.white.set()
+                    currentContext.setLineWidth(6.0 / scaleX)
+                    currentContext.stroke(tileRect)
+                }
             }
         }
     }
 
-    //TODO: What...
-    func tileForScale(_ scale: CGFloat, row: Int, col: Int) -> UIImage {
-        return UIImage()
+    func tileFor(scale: CGFloat, row: Int, col: Int) -> UIImage? {
+        let scale = scale < 1.0 ? Int(1 / CGFloat(Int(1 / scale)) * 1000) : Int(scale * 1000)
+        let tileName = "\(self.imageName)_\(scale)_\(col)_\(row).png"
+        let path = url.appendingPathComponent(tileName).path
+        let image = UIImage(contentsOfFile: path)
+
+        return image
     }
 
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
