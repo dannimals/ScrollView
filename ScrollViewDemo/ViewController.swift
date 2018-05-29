@@ -5,16 +5,12 @@ class DemoViewController: UIViewController {
 
     var imageScrollView: ImageScrollView!
 
-    override func loadView() {
-        super.loadView()
-
-        imageScrollView = ImageScrollView(frame: view.bounds)
-        self.view = imageScrollView
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        imageScrollView = ImageScrollView(frame: view.bounds)
+        self.view = imageScrollView
+        imageScrollView.displayTiledImage()
         view.backgroundColor = UIColor.white
     }
 }
@@ -29,20 +25,20 @@ class ImageScrollView: UIScrollView {
         self.delegate = self // TODO: Consider placing this in VC
     }
 
-    func displayTiledImage(in url: URL, size imageSize: CGSize) {
+    func displayTiledImage() {//in url: URL, size imageSize: CGSize) {
         zoomView?.removeFromSuperview()
         zoomView = nil
         tilingView = nil
 
-        zoomView = UIImageView(frame: CGRect(origin: CGPoint.zero, size: imageSize))
-        let image = placeholderImage(for: url)
-        zoomView?.image = image
-        addSubview(zoomView!)
+//        zoomView = UIImageView(frame: CGRect(origin: CGPoint.zero, size: imageSize))
+//        let image = placeholderImage(for: url)
+//        zoomView?.image = image
+//        addSubview(zoomView!)
 
-        tilingView = TilingView(image: UIImage(), frame: CGRect.zero)
-        zoomView?.addSubview(tilingView!)
+        tilingView = TilingView(image: #imageLiteral(resourceName: "maincoon"), frame: self.bounds)
+        addSubview(tilingView!)
 
-        configureFor(imageSize)
+        configureFor(tilingView!.bounds.size)
     }
 
     private func configureFor(_ size: CGSize) {
@@ -151,7 +147,7 @@ class TileManager {
                 let tileImageRect = CGRect(x: tileSize.width * CGFloat(row), y: tileSize.height * CGFloat(col), width: tileSize.width, height: tileSize.height)
                 guard let tileImage = cgImage.cropping(to: tileImageRect),
                     let imageData = UIImagePNGRepresentation(UIImage(cgImage: tileImage)) else { continue }
-                let imagePathComponent = String(format: "%@/%@%d_%d.png", directoryPath, prefix, row, col)
+                let imagePathComponent = "TiledImages-\(prefix)-\(row)-\(col)"//String(format: "%f/%@%d_%d.png", "TiledImages", prefix, row, col)
                 let fileManagerPath = documentsDirectory.appendingPathComponent(imagePathComponent)
                 try? imageData.write(to: fileManagerPath)
             }
@@ -159,7 +155,9 @@ class TileManager {
     }
 
     func tileFor(scale: CGFloat, row: Int, col: Int) -> UIImage? {
-        return nil
+        let prefix = Int(scale * 1000)
+        let imagePath = "TiledImages-\(prefix)-\(row)-\(col)"//String(format: "%f/%@%d_%d.png", "TiledImages", prefix, row, col)
+        return UIImage(contentsOfFile: imagePath)
     }
 
 }
@@ -178,24 +176,21 @@ class TilingView: UIView {
         }
     }
 
-    private var tiledLayer: CATiledLayer {
-        return self.layer as! CATiledLayer
-    }
-
     required init(image: UIImage, frame: CGRect) {
+        // TODO: Optimize for small images
         self.tileManager = TileManager(image: image)
         super.init(frame: frame)
 
-        tiledLayer.levelsOfDetail = 4
+        (self.layer as! CATiledLayer).levelsOfDetail = 4
     }
 
     override func draw(_ rect: CGRect) {
-        guard let currentContext = UIGraphicsGetCurrentContext(), let tiledLayer = self.layer as? CATiledLayer
+        guard let currentContext = UIGraphicsGetCurrentContext()
             else { return }
 
         let scaleX: CGFloat = currentContext.ctm.a
         let scaleY: CGFloat = currentContext.ctm.d
-        var tileSize = tiledLayer.tileSize
+        var tileSize = CGSize(width: 256, height: 256)// tiledLayer.tileSize
         tileSize.width /= scaleX
         tileSize.height /= -scaleY
 
@@ -203,6 +198,9 @@ class TilingView: UIView {
         let lastCol = Int(floor((rect.maxX - 1) / tileSize.width))
         let firstRow = Int(floor(rect.minY / tileSize.height))
         let lastRow = Int(floor((rect.maxY - 1) / tileSize.height))
+
+        let prefix = Int(scaleX * 1000)
+        tileManager.saveTiles(ofSize: CGSize(width: 256, height: 256), forRect: rect, toDirectory: "TiledImages", usingPrefix: "\(prefix)")
 
         for row in firstRow...lastRow {
             for col in firstCol...lastCol {
