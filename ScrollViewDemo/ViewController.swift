@@ -10,46 +10,84 @@ class DemoViewController: UIViewController {
 
         imageScrollView = ImageScrollView(frame: view.bounds)
         self.view = imageScrollView
-        imageScrollView.delegate = self
-        imageScrollView.maximumZoomScale = 5
-        imageScrollView.minimumZoomScale = 0.5
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = UIColor.white
-
-    }
-}
-
-extension DemoViewController: UIScrollViewDelegate {
-
-    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-        return imageScrollView.imageView
     }
 }
 
 class ImageScrollView: UIScrollView {
-    let imageView = UIImageView()
+    var zoomView: UIImageView?
+    var tilingView: TilingView?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        imageView.contentMode = .scaleAspectFit
-        imageView.image = #imageLiteral(resourceName: "maincoon")
-        var imageViewFrame = imageView.frame
-        imageViewFrame.size.width = frame.width
-        imageViewFrame.size.height = frame.height
-        imageView.frame = imageViewFrame
-        addSubview(imageView)
+        self.delegate = self
     }
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
+    func displayTiledImage(in url: URL, size imageSize: CGSize) {
+        zoomView?.removeFromSuperview()
+        zoomView = nil
+        tilingView = nil
 
+        zoomView = UIImageView(frame: CGRect(origin: CGPoint.zero, size: imageSize))
+        let image = placeholderImage(for: url)
+        zoomView?.image = image
+        addSubview(zoomView!)
+
+        tilingView = TilingView(url: url, size: imageSize)
+        zoomView?.addSubview(tilingView!)
+
+        configureFor(imageSize)
+    }
+
+    private func configureFor(_ size: CGSize) {
+        contentSize = size
+        setMaxMinZoomScaleForCurrentBounds()
+        zoomScale = self.minimumZoomScale
+        zoomView?.isUserInteractionEnabled = true
+    }
+
+    private func setMaxMinZoomScaleForCurrentBounds() {
         let boundsSize = bounds.size
-        var frameToCenter = imageView.frame
+        let imageSize = zoomView?.bounds.size ?? CGSize.zero
+
+        let xScale =  boundsSize.width  / imageSize.width
+        let yScale = boundsSize.height / imageSize.height
+        let minScale = min(xScale, yScale)
+
+        var maxScale: CGFloat = 1.0
+
+        if minScale < 0.1 {
+            maxScale = 0.3
+        }
+
+        if minScale >= 0.1 && minScale < 0.5 {
+            maxScale = 0.7
+        }
+
+        if minScale >= 0.5 {
+            maxScale = max(1.0, minScale)
+        }
+
+        self.maximumZoomScale = maxScale
+        self.minimumZoomScale = minScale
+    }
+
+    private func placeholderImage(for url: URL) -> UIImage? {
+        let name = url.deletingPathExtension().lastPathComponent
+        let imageName = "\(name)_Placeholder.jpg"
+        let url = url.appendingPathComponent(imageName)
+        return UIImage(contentsOfFile: url.path)
+    }
+
+    private func centerImageView() {
+        let boundsSize = bounds.size
+        var frameToCenter = zoomView?.frame ?? CGRect.zero
 
         if frameToCenter.size.width < boundsSize.width {
             frameToCenter.origin.x = (boundsSize.width - frameToCenter.width) / 2
@@ -63,10 +101,28 @@ class ImageScrollView: UIScrollView {
             frameToCenter.origin.y = 0
         }
 
-        imageView.frame = frameToCenter
+        zoomView?.frame = frameToCenter
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        centerImageView()
     }
 
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+}
+
+extension ImageScrollView: UIScrollViewDelegate {
+
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return zoomView
+    }
+
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        centerImageView()
+    }
+
 }
 
 class TilingView: UIView {
