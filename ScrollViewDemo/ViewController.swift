@@ -5,86 +5,87 @@ class DemoViewController: UIViewController {
 
     var imageScrollView: ImageScrollView!
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override func loadView() {
+        super.loadView()
 
         imageScrollView = ImageScrollView(frame: view.bounds)
         self.view = imageScrollView
-        imageScrollView.displayTiledImage()
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
         view.backgroundColor = UIColor.white
+        imageScrollView.display(image: #imageLiteral(resourceName: "galaxy"))
     }
 }
 
 class ImageScrollView: UIScrollView {
-    var zoomView: UIImageView?
     var tilingView: TilingView?
+    var scaledImage: UIImage?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        self.delegate = self // TODO: Consider placing this in VC
+        self.delegate = self
+        setup()
     }
 
-    func displayTiledImage() {//in url: URL, size imageSize: CGSize) {
-        zoomView?.removeFromSuperview()
-        zoomView = nil
-        tilingView = nil
+    func display(image: UIImage) {
+        self.tilingView = TilingView(image: image, frame: CGRect(origin: .zero, size: image.size))
+        guard let tilingView =  self.tilingView else { return }
+        configureFor(tilingView.bounds.size)
+        addSubview(tilingView)
+    }
 
-//        zoomView = UIImageView(frame: CGRect(origin: CGPoint.zero, size: imageSize))
-//        let image = placeholderImage(for: url)
-//        zoomView?.image = image
-//        addSubview(zoomView!)
+    private func rectForImage(_ image: UIImage) -> CGRect {
+        var rect = CGRect.zero
+        if image.size.width < bounds.width {
+            rect.size = image.size
+        } else {
+            let scaledImage = imageThatFitsScreen(image)
+            rect.size = scaledImage.size
+//            self.scaledImage = scaledImage
+        }
+        let imageView = UIImageView(frame: rect)
+        imageView.contentMode = .scaleAspectFit
+        imageView.image = image
 
-        let image = #imageLiteral(resourceName: "yosemite")
-        tilingView = TilingView(image: image, frame: CGRect(origin: .zero, size: image.size))
-        addSubview(tilingView!)
+        return imageView.frame
+    }
 
-        configureFor(tilingView!.bounds.size)
+    private func imageThatFitsScreen(_ image: UIImage) -> UIImage {
+        let scaleY = image.size.height / image.size.width
+        let scaledSize = CGSize(width: bounds.width, height: bounds.width * scaleY)
+        let scaledImage = image.resizeImage(toSize: scaledSize)
+        return scaledImage ?? image
+    }
+
+    private func setup() {
+        showsVerticalScrollIndicator = false
+        showsHorizontalScrollIndicator = false
     }
 
     private func configureFor(_ size: CGSize) {
-        contentSize = size
         setMaxMinZoomScaleForCurrentBounds()
-        zoomScale = self.minimumZoomScale
-        zoomView?.isUserInteractionEnabled = true
     }
 
     private func setMaxMinZoomScaleForCurrentBounds() {
-        let boundsSize = bounds.size
-        let imageSize = tilingView?.bounds.size ?? CGSize.zero
-
-        let xScale =  boundsSize.width  / imageSize.width
-        let yScale = boundsSize.height / imageSize.height
-        let minScale = min(xScale, yScale)
-
-        var maxScale: CGFloat = 1.0
-
-        if minScale < 0.1 {
-            maxScale = 0.3
+        guard let tilingView = tilingView else { return }
+        maximumZoomScale = 2
+        minimumZoomScale = 0.1
+        if tilingView.bounds.size.width > bounds.width {
+            let scale = bounds.width / tilingView.bounds.size.width
+            minimumZoomScale = min(0.1, 0.02)
+            zoomScale = scale
         }
-
-        if minScale >= 0.1 && minScale < 0.5 {
-            maxScale = 0.7
-        }
-
-        if minScale >= 0.5 {
-            maxScale = max(1.0, minScale)
-        }
-
-        self.maximumZoomScale = 2//maxScale
-        self.minimumZoomScale = 0.5//minScale
-    }
-
-    private func placeholderImage(for url: URL) -> UIImage? {
-        let name = url.deletingPathExtension().lastPathComponent
-        let imageName = "\(name)_Placeholder.jpg"
-        let url = url.appendingPathComponent(imageName)
-        return UIImage(contentsOfFile: url.path)
     }
 
     private func centerImageView() {
+        guard let tilingView = self.tilingView else { return }
+
         let boundsSize = bounds.size
-        var frameToCenter = tilingView?.frame ?? CGRect.zero
+        var frameToCenter = tilingView.frame
 
         if frameToCenter.size.width < boundsSize.width {
             frameToCenter.origin.x = (boundsSize.width - frameToCenter.width) / 2
@@ -98,7 +99,7 @@ class ImageScrollView: UIScrollView {
             frameToCenter.origin.y = 0
         }
 
-        tilingView?.frame = frameToCenter
+        tilingView.frame = frameToCenter
     }
 
     override func layoutSubviews() {
@@ -191,6 +192,7 @@ class TilingView: UIView {
 
     private let tileManager: TileManager
     private var tileBounds: CGRect?
+    private let tileSize = CGSize(width: 500, height: 500)
 
     override static var layerClass: AnyClass {
         return CATiledLayer.self
@@ -209,6 +211,7 @@ class TilingView: UIView {
 
         (self.layer as! CATiledLayer).levelsOfDetail = 4
         (self.layer as! CATiledLayer).levelsOfDetailBias = 2
+        (self.layer as! CATiledLayer).tileSize = tileSize
     }
 
     override func didMoveToSuperview() {
@@ -222,11 +225,10 @@ class TilingView: UIView {
             let tileBounds = tileBounds, tileBounds != CGRect.zero
             else { return }
 
-        let scaleX: CGFloat = currentContext.ctm.a
-        let scaleY: CGFloat = currentContext.ctm.d
-        var tileSize = CGSize(width: 256, height: 256)
-        tileSize.width /= scaleX
-        tileSize.height /= -scaleY
+        let scale: CGFloat = currentContext.ctm.a
+        var tileSize = self.tileSize
+        tileSize.width /= scale
+        tileSize.height /= scale
 
         let firstCol = Int(floor(rect.minX / tileSize.width))
         let lastCol = Int(floor((rect.maxX - 1) / tileSize.width))
@@ -235,15 +237,15 @@ class TilingView: UIView {
 
         for row in firstRow...lastRow {
             for col in firstCol...lastCol {
-                guard let tile = tileManager.tileFor(size: tileSize, scale: scaleX, rect: rect, row: row, col: col) else { return }
+                guard let tile = tileManager.tileFor(size: tileSize, scale: scale, rect: rect, row: row, col: col) else { return }
 
                 var tileRect = CGRect(x: tileSize.width * CGFloat(col), y: tileSize.height * CGFloat(row), width: tileSize.width, height: tileSize.height)
                 tileRect = tileBounds.intersection(tileRect)
                 tile.draw(in: tileRect)
 
                 if true {
-                    scaleX == 4 ? UIColor.red.set() : UIColor.white.set()
-                    currentContext.setLineWidth(6.0 / scaleX)
+                    scale == 4 ? UIColor.red.set() : UIColor.white.set()
+                    currentContext.setLineWidth(6.0 / scale)
                     currentContext.stroke(tileRect)
                 }
             }
