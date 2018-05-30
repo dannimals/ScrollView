@@ -38,29 +38,6 @@ class ImageScrollView: UIScrollView {
         addSubview(tilingView)
     }
 
-    private func rectForImage(_ image: UIImage) -> CGRect {
-        var rect = CGRect.zero
-        if image.size.width < bounds.width {
-            rect.size = image.size
-        } else {
-            let scaledImage = imageThatFitsScreen(image)
-            rect.size = scaledImage.size
-//            self.scaledImage = scaledImage
-        }
-        let imageView = UIImageView(frame: rect)
-        imageView.contentMode = .scaleAspectFit
-        imageView.image = image
-
-        return imageView.frame
-    }
-
-    private func imageThatFitsScreen(_ image: UIImage) -> UIImage {
-        let scaleY = image.size.height / image.size.width
-        let scaledSize = CGSize(width: bounds.width, height: bounds.width * scaleY)
-        let scaledImage = image.resizeImage(toSize: scaledSize)
-        return scaledImage ?? image
-    }
-
     private func setup() {
         showsVerticalScrollIndicator = false
         showsHorizontalScrollIndicator = false
@@ -76,7 +53,7 @@ class ImageScrollView: UIScrollView {
         minimumZoomScale = 0.1
         if tilingView.bounds.size.width > bounds.width {
             let scale = bounds.width / tilingView.bounds.size.width
-            minimumZoomScale = min(0.1, 0.02)
+            minimumZoomScale = min(0.1, scale)
             zoomScale = scale
         }
     }
@@ -152,9 +129,18 @@ class TileManager {
         let pathComponent = "TiledImages-\(prefix)-\(row)-\(col)"
         let filePath = pathByAppending(pathComponent: pathComponent)
         if !fileManager.fileExists(atPath: filePath.path) {
+//            let imageSize = #imageLiteral(resourceName: "galaxy").size
             let prefix = "\(prefix)"
-            guard let cgImage = image.cgImage else { return nil }
-            saveTiles(ofSize: size, forRect: rect, toDirectory: "TiledImages", usingPrefix: prefix, image: cgImage)
+            var cgImage: CGImage?
+//            if scale * 1000 <= 1000 {
+//                cgImage = #imageLiteral(resourceName: "galaxy-smallest").resizeImage(toSize: imageSize)?.cgImage
+//            } else if scale * 1000 <= 2000 && scale * 1000 > 1000 {
+//                cgImage = #imageLiteral(resourceName: "galaxy-smaller").resizeImage(toSize: imageSize)?.cgImage
+//            } else {
+                cgImage = #imageLiteral(resourceName: "galaxy").cgImage
+//            }
+            guard cgImage != nil else { return nil }
+            saveTiles(ofSize: size, forRect: rect, toDirectory: "TiledImages", usingPrefix: prefix, image: cgImage!)
         }
         
         return UIImage(contentsOfFile: filePath.path)
@@ -209,7 +195,7 @@ class TilingView: UIView {
         self.tileManager = TileManager(image: image)
         super.init(frame: frame)
 
-        (self.layer as! CATiledLayer).levelsOfDetail = 4
+        (self.layer as! CATiledLayer).levelsOfDetail = 6
         (self.layer as! CATiledLayer).levelsOfDetailBias = 2
         (self.layer as! CATiledLayer).tileSize = tileSize
     }
