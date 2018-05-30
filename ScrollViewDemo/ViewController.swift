@@ -35,8 +35,8 @@ class ImageScrollView: UIScrollView {
 //        zoomView?.image = image
 //        addSubview(zoomView!)
 
-        let image = #imageLiteral(resourceName: "maincoon")
-        tilingView = TilingView(image: #imageLiteral(resourceName: "maincoon"), frame: CGRect(origin: .zero, size: image.size))
+        let image = #imageLiteral(resourceName: "yosemite")
+        tilingView = TilingView(image: image, frame: CGRect(origin: .zero, size: image.size))
         addSubview(tilingView!)
 
         configureFor(tilingView!.bounds.size)
@@ -129,14 +129,44 @@ class TileManager {
         return paths[0]
     }()
 
+    private let fileManager = FileManager.default
     private let image: UIImage
 
     init(image: UIImage) {
         self.image = image
+        clearImageCache()
     }
 
-    func saveTiles(ofSize tileSize: CGSize, forRect rect: CGRect, toDirectory directoryPath: String, usingPrefix prefix: String) {
-        guard let cgImage = image.cgImage else { return }
+    private func clearImageCache() {
+        guard let paths = try? fileManager.contentsOfDirectory(atPath: documentsDirectory.path) else { return }
+        for path in paths {
+            if path.contains("TiledImages") {
+                try? fileManager.removeItem(atPath: pathByAppending(pathComponent: path).path)
+            }
+        }
+    }
+
+    func tileFor(size: CGSize, scale: CGFloat, rect: CGRect, row: Int, col: Int) -> UIImage? {
+        let prefix = Int(scale * 1000)
+        let pathComponent = "TiledImages-\(prefix)-\(row)-\(col)"
+        let filePath = pathByAppending(pathComponent: pathComponent)
+        if !fileManager.fileExists(atPath: filePath.path) {
+            let prefix = "\(prefix)"
+            guard let cgImage = image.cgImage else { return nil }
+            saveTiles(ofSize: size, forRect: rect, toDirectory: "TiledImages", usingPrefix: prefix, image: cgImage)
+        }
+        
+        return UIImage(contentsOfFile: filePath.path)
+    }
+
+    private func pathByAppending(pathComponent: String) -> URL {
+        return documentsDirectory.appendingPathComponent(pathComponent)
+    }
+
+    private func saveTiles(ofSize tileSize: CGSize, forRect rect: CGRect, toDirectory directoryPath: String, usingPrefix prefix: String, image: CGImage) {
+
+        let cgImage = image
+        // TODO: Deal with remainder
 
         let firstCol = Int(floor(rect.minX / tileSize.width))
         let lastCol = Int(floor((rect.maxX - 1) / tileSize.width))
@@ -148,18 +178,11 @@ class TileManager {
                 let tileImageRect = CGRect(x: tileSize.width * CGFloat(col), y: tileSize.height * CGFloat(row), width: tileSize.width, height: tileSize.height)
                 guard let tileImage = cgImage.cropping(to: tileImageRect),
                     let imageData = UIImagePNGRepresentation(UIImage(cgImage: tileImage)) else { continue }
-                let imagePathComponent = "TiledImages-\(prefix)-\(row)-\(col)"//String(format: "%f/%@%d_%d.png", "TiledImages", prefix, row, col)
-                let fileManagerPath = documentsDirectory.appendingPathComponent(imagePathComponent)
+                let pathComponent = "TiledImages-\(prefix)-\(row)-\(col)"
+                let fileManagerPath = pathByAppending(pathComponent: pathComponent)
                 try? imageData.write(to: fileManagerPath)
             }
         }
-    }
-
-    func tileFor(scale: CGFloat, row: Int, col: Int) -> UIImage? {
-        let prefix = Int(scale * 1000)
-        let imagePathComponent = "TiledImages-\(prefix)-\(row)-\(col)"//String(format: "%f/%@%d_%d.png", "TiledImages", prefix, row, col)
-        let fileManagerPath = documentsDirectory.appendingPathComponent(imagePathComponent).path
-        return UIImage(contentsOfFile: fileManagerPath)
     }
 
 }
@@ -167,6 +190,7 @@ class TileManager {
 class TilingView: UIView {
 
     private let tileManager: TileManager
+    private var tileBounds: CGRect?
 
     override static var layerClass: AnyClass {
         return CATiledLayer.self
@@ -184,15 +208,23 @@ class TilingView: UIView {
         super.init(frame: frame)
 
         (self.layer as! CATiledLayer).levelsOfDetail = 4
+        (self.layer as! CATiledLayer).levelsOfDetailBias = 2
+    }
+
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+
+        self.tileBounds = bounds
     }
 
     override func draw(_ rect: CGRect) {
-        guard let currentContext = UIGraphicsGetCurrentContext()
+        guard let currentContext = UIGraphicsGetCurrentContext(),
+            let tileBounds = tileBounds, tileBounds != CGRect.zero
             else { return }
 
         let scaleX: CGFloat = currentContext.ctm.a
         let scaleY: CGFloat = currentContext.ctm.d
-        var tileSize = CGSize(width: 256, height: 256)// tiledLayer.tileSize
+        var tileSize = CGSize(width: 256, height: 256)
         tileSize.width /= scaleX
         tileSize.height /= -scaleY
 
@@ -201,18 +233,16 @@ class TilingView: UIView {
         let firstRow = Int(floor(rect.minY / tileSize.height))
         let lastRow = Int(floor((rect.maxY - 1) / tileSize.height))
 
-        let prefix = Int(scaleX * 1000)
-        tileManager.saveTiles(ofSize: CGSize(width: 256, height: 256), forRect: rect, toDirectory: "TiledImages", usingPrefix: "\(prefix)")
-
         for row in firstRow...lastRow {
             for col in firstCol...lastCol {
-                guard let tile = tileManager.tileFor(scale: scaleX, row: row, col: col) else { return }
+                guard let tile = tileManager.tileFor(size: tileSize, scale: scaleX, rect: rect, row: row, col: col) else { return }
+
                 var tileRect = CGRect(x: tileSize.width * CGFloat(col), y: tileSize.height * CGFloat(row), width: tileSize.width, height: tileSize.height)
-                tileRect = self.bounds.intersection(tileRect)
+                tileRect = tileBounds.intersection(tileRect)
                 tile.draw(in: tileRect)
 
                 if true {
-                    UIColor.white.set()
+                    scaleX == 4 ? UIColor.red.set() : UIColor.white.set()
                     currentContext.setLineWidth(6.0 / scaleX)
                     currentContext.stroke(tileRect)
                 }
