@@ -9,6 +9,7 @@ class DemoViewController: UIViewController {
         super.loadView()
 
         imageScrollView = ImageScrollView(frame: view.bounds)
+        imageScrollView.delegate = self
         self.view = imageScrollView
     }
 
@@ -16,8 +17,17 @@ class DemoViewController: UIViewController {
         super.viewDidLoad()
 
         view.backgroundColor = UIColor.white
-        imageScrollView.display(image: #imageLiteral(resourceName: "galaxy"))
+        let lowResolutionImage = #imageLiteral(resourceName: "galaxy-smallest")
+        imageScrollView.display(image: lowResolutionImage)
     }
+}
+
+extension DemoViewController: UIScrollViewDelegate {
+
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return imageScrollView.tilingView
+    }
+
 }
 
 class ImageScrollView: UIScrollView {
@@ -27,15 +37,14 @@ class ImageScrollView: UIScrollView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        self.delegate = self
         setup()
     }
 
     func display(image: UIImage) {
         self.tilingView = TilingView(image: image, frame: CGRect(origin: .zero, size: image.size))
-        guard let tilingView =  self.tilingView else { return }
-        configureFor(tilingView.bounds.size)
+        guard let tilingView = self.tilingView else { return }
         addSubview(tilingView)
+        setMaxMinZoomScaleForCurrentBounds()
     }
 
     private func setup() {
@@ -43,22 +52,18 @@ class ImageScrollView: UIScrollView {
         showsHorizontalScrollIndicator = false
     }
 
-    private func configureFor(_ size: CGSize) {
-        setMaxMinZoomScaleForCurrentBounds()
-    }
-
     private func setMaxMinZoomScaleForCurrentBounds() {
         guard let tilingView = tilingView else { return }
         maximumZoomScale = 2
-        minimumZoomScale = 0.1
+        minimumZoomScale = 0.125
         if tilingView.bounds.size.width > bounds.width {
             let scale = bounds.width / tilingView.bounds.size.width
-            minimumZoomScale = min(0.1, scale)
+            minimumZoomScale = min(minimumZoomScale, scale)
             zoomScale = scale
         }
     }
 
-    private func centerImageView() {
+    func centerImageView() {
         guard let tilingView = self.tilingView else { return }
 
         let boundsSize = bounds.size
@@ -82,22 +87,20 @@ class ImageScrollView: UIScrollView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
+//        if zoomScale * 1000 <= 1000 {
+//            let lowResolutionImage = #imageLiteral(resourceName: "galaxy-smallest")
+//            display(image: lowResolutionImage)
+//        } else if zoomScale * 1000 <= 2000 && zoomScale * 1000 > 1000 {
+//            let medResolutionImage = #imageLiteral(resourceName: "galaxy-smaller")
+//            display(image: medResolutionImage)
+//        } else {
+//            let highResolutionImage = #imageLiteral(resourceName: "galaxy")
+//            display(image: highResolutionImage)
+//        }
         centerImageView()
     }
 
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-}
-
-extension ImageScrollView: UIScrollViewDelegate {
-
-    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-        return tilingView
-    }
-
-    func scrollViewDidZoom(_ scrollView: UIScrollView) {
-        centerImageView()
-    }
-
 }
 
 class TileManager {
@@ -109,9 +112,14 @@ class TileManager {
 
     private let fileManager = FileManager.default
     private let image: UIImage
+    private let midResImage: UIImage?
+    private let highResImage: UIImage?
 
-    init(image: UIImage) {
+    init(image: UIImage, midResImage: UIImage?, highResImage: UIImage?) {
         self.image = image
+        let sizeToResize = image.size
+        self.midResImage = midResImage?.resizeImage(toSize: sizeToResize)
+        self.highResImage = highResImage?.resizeImage(toSize: sizeToResize)
         clearImageCache()
     }
 
@@ -129,18 +137,18 @@ class TileManager {
         let pathComponent = "TiledImages-\(prefix)-\(row)-\(col)"
         let filePath = pathByAppending(pathComponent: pathComponent)
         if !fileManager.fileExists(atPath: filePath.path) {
-//            let imageSize = #imageLiteral(resourceName: "galaxy").size
             let prefix = "\(prefix)"
-            var cgImage: CGImage?
-//            if scale * 1000 <= 1000 {
-//                cgImage = #imageLiteral(resourceName: "galaxy-smallest").resizeImage(toSize: imageSize)?.cgImage
-//            } else if scale * 1000 <= 2000 && scale * 1000 > 1000 {
-//                cgImage = #imageLiteral(resourceName: "galaxy-smaller").resizeImage(toSize: imageSize)?.cgImage
-//            } else {
-                cgImage = #imageLiteral(resourceName: "galaxy").cgImage
-//            }
-            guard cgImage != nil else { return nil }
-            saveTiles(ofSize: size, forRect: rect, toDirectory: "TiledImages", usingPrefix: prefix, image: cgImage!)
+            var optimalImage: UIImage?
+            if scale * 1000 <= 1000 {
+                optimalImage = self.image
+            } else if scale * 1000 <= 2000 && scale * 1000 > 1000 {
+                optimalImage = self.midResImage
+            } else {
+                optimalImage = self.highResImage
+            }
+            guard let cgImage = optimalImage?.cgImage else { return nil }
+            saveTile(ofSize: size, forRect: rect, withScale: scale, usingPrefix: prefix, forImage: cgImage, forRow: row, forCol: col)
+//            saveTiles(ofSize: size, forRect: rect, toDirectory: "TiledImages", usingPrefix: prefix, image: cgImage)
         }
         
         return UIImage(contentsOfFile: filePath.path)
@@ -148,6 +156,15 @@ class TileManager {
 
     private func pathByAppending(pathComponent: String) -> URL {
         return documentsDirectory.appendingPathComponent(pathComponent)
+    }
+
+    private func saveTile(ofSize tileSize: CGSize, forRect rect: CGRect, withScale scale: CGFloat, usingPrefix prefix: String, forImage image: CGImage, forRow row: Int, forCol col: Int) {
+        guard let tileImage = image.cropping(to: rect),
+            let imageData = UIImagePNGRepresentation(UIImage(cgImage: tileImage)) else { return }
+
+        let pathComponent = "TiledImages-\(prefix)-\(row)-\(col)"
+        let fileManagerPath = pathByAppending(pathComponent: pathComponent)
+        try? imageData.write(to: fileManagerPath)
     }
 
     private func saveTiles(ofSize tileSize: CGSize, forRect rect: CGRect, toDirectory directoryPath: String, usingPrefix prefix: String, image: CGImage) {
@@ -192,11 +209,11 @@ class TilingView: UIView {
 
     required init(image: UIImage, frame: CGRect) {
         // TODO: Optimize for small images
-        self.tileManager = TileManager(image: image)
+        self.tileManager = TileManager(image: image, midResImage: #imageLiteral(resourceName: "galaxy-smaller"), highResImage: #imageLiteral(resourceName: "galaxy"))
         super.init(frame: frame)
 
-        (self.layer as! CATiledLayer).levelsOfDetail = 6
-        (self.layer as! CATiledLayer).levelsOfDetailBias = 2
+        (self.layer as! CATiledLayer).levelsOfDetail = 7
+        (self.layer as! CATiledLayer).levelsOfDetailBias = 3
         (self.layer as! CATiledLayer).tileSize = tileSize
     }
 
@@ -240,4 +257,3 @@ class TilingView: UIView {
 
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 }
-
