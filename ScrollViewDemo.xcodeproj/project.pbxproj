@@ -7,13 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9E23617920BF18E900BDD0B3 /* ImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E23617820BF18E900BDD0B3 /* ImageExtension.swift */; };
 		9E453BFE20BB9CB10041C219 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E453BFD20BB9CB10041C219 /* AppDelegate.swift */; };
-		9E453C0020BB9CB10041C219 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E453BFF20BB9CB10041C219 /* ViewController.swift */; };
+		9E453C0020BB9CB10041C219 /* TileImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E453BFF20BB9CB10041C219 /* TileImageViewController.swift */; };
 		9E453C0520BB9CB20041C219 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9E453C0420BB9CB20041C219 /* Assets.xcassets */; };
 		9E453C0820BB9CB20041C219 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9E453C0620BB9CB20041C219 /* LaunchScreen.storyboard */; };
 		9E453C1320BB9CB20041C219 /* ScrollViewDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E453C1220BB9CB20041C219 /* ScrollViewDemoTests.swift */; };
 		9E453C1E20BB9CB20041C219 /* ScrollViewDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E453C1D20BB9CB20041C219 /* ScrollViewDemoUITests.swift */; };
+		9EE03E4121A5F069007D5187 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4021A5F069007D5187 /* MainViewController.swift */; };
+		9EE03E4321A5F379007D5187 /* TiledImageScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4221A5F379007D5187 /* TiledImageScrollView.swift */; };
+		9EE03E4521A5F39F007D5187 /* TileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4421A5F39F007D5187 /* TileManager.swift */; };
+		9EE03E4721A5F3AF007D5187 /* TilingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4621A5F3AF007D5187 /* TilingView.swift */; };
+		9EE03E4921A5F462007D5187 /* TiledImagesFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4821A5F462007D5187 /* TiledImagesFileManager.swift */; };
+		9EE03E4B21A5FB56007D5187 /* TiledImageDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4A21A5FB56007D5187 /* TiledImageDemo.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,10 +39,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9E23617820BF18E900BDD0B3 /* ImageExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageExtension.swift; sourceTree = "<group>"; };
 		9E453BFA20BB9CB00041C219 /* ScrollViewDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScrollViewDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E453BFD20BB9CB10041C219 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		9E453BFF20BB9CB10041C219 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		9E453BFF20BB9CB10041C219 /* TileImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileImageViewController.swift; sourceTree = "<group>"; };
 		9E453C0420BB9CB20041C219 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9E453C0720BB9CB20041C219 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9E453C0920BB9CB20041C219 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -47,6 +51,12 @@
 		9E453C1920BB9CB20041C219 /* ScrollViewDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScrollViewDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E453C1D20BB9CB20041C219 /* ScrollViewDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollViewDemoUITests.swift; sourceTree = "<group>"; };
 		9E453C1F20BB9CB20041C219 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9EE03E4021A5F069007D5187 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		9EE03E4221A5F379007D5187 /* TiledImageScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiledImageScrollView.swift; sourceTree = "<group>"; };
+		9EE03E4421A5F39F007D5187 /* TileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileManager.swift; sourceTree = "<group>"; };
+		9EE03E4621A5F3AF007D5187 /* TilingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TilingView.swift; sourceTree = "<group>"; };
+		9EE03E4821A5F462007D5187 /* TiledImagesFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiledImagesFileManager.swift; sourceTree = "<group>"; };
+		9EE03E4A21A5FB56007D5187 /* TiledImageDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiledImageDemo.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,11 +108,16 @@
 			isa = PBXGroup;
 			children = (
 				9E453BFD20BB9CB10041C219 /* AppDelegate.swift */,
-				9E453BFF20BB9CB10041C219 /* ViewController.swift */,
-				9E23617820BF18E900BDD0B3 /* ImageExtension.swift */,
-				9E453C0420BB9CB20041C219 /* Assets.xcassets */,
+				9EE03E4221A5F379007D5187 /* TiledImageScrollView.swift */,
+				9EE03E4021A5F069007D5187 /* MainViewController.swift */,
+				9EE03E4821A5F462007D5187 /* TiledImagesFileManager.swift */,
+				9EE03E4A21A5FB56007D5187 /* TiledImageDemo.swift */,
+				9E453BFF20BB9CB10041C219 /* TileImageViewController.swift */,
+				9EE03E4421A5F39F007D5187 /* TileManager.swift */,
+				9EE03E4621A5F3AF007D5187 /* TilingView.swift */,
 				9E453C0620BB9CB20041C219 /* LaunchScreen.storyboard */,
 				9E453C0920BB9CB20041C219 /* Info.plist */,
+				9E453C0420BB9CB20041C219 /* Assets.xcassets */,
 			);
 			path = ScrollViewDemo;
 			sourceTree = "<group>";
@@ -255,9 +270,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9E453C0020BB9CB10041C219 /* ViewController.swift in Sources */,
-				9E23617920BF18E900BDD0B3 /* ImageExtension.swift in Sources */,
+				9EE03E4B21A5FB56007D5187 /* TiledImageDemo.swift in Sources */,
+				9E453C0020BB9CB10041C219 /* TileImageViewController.swift in Sources */,
+				9EE03E4921A5F462007D5187 /* TiledImagesFileManager.swift in Sources */,
+				9EE03E4321A5F379007D5187 /* TiledImageScrollView.swift in Sources */,
+				9EE03E4521A5F39F007D5187 /* TileManager.swift in Sources */,
+				9EE03E4721A5F3AF007D5187 /* TilingView.swift in Sources */,
 				9E453BFE20BB9CB10041C219 /* AppDelegate.swift in Sources */,
+				9EE03E4121A5F069007D5187 /* MainViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
