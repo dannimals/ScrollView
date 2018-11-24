@@ -107,14 +107,10 @@
 		9E453BFC20BB9CB00041C219 /* ScrollViewDemo */ = {
 			isa = PBXGroup;
 			children = (
-				9E453BFD20BB9CB10041C219 /* AppDelegate.swift */,
-				9EE03E4221A5F379007D5187 /* TiledImageScrollView.swift */,
-				9EE03E4021A5F069007D5187 /* MainViewController.swift */,
-				9EE03E4821A5F462007D5187 /* TiledImagesFileManager.swift */,
 				9EE03E4A21A5FB56007D5187 /* TiledImageDemo.swift */,
-				9E453BFF20BB9CB10041C219 /* TileImageViewController.swift */,
-				9EE03E4421A5F39F007D5187 /* TileManager.swift */,
-				9EE03E4621A5F3AF007D5187 /* TilingView.swift */,
+				9EE03E4C21A9D193007D5187 /* TileImageViewController */,
+				9E453BFD20BB9CB10041C219 /* AppDelegate.swift */,
+				9EE03E4021A5F069007D5187 /* MainViewController.swift */,
 				9E453C0620BB9CB20041C219 /* LaunchScreen.storyboard */,
 				9E453C0920BB9CB20041C219 /* Info.plist */,
 				9E453C0420BB9CB20041C219 /* Assets.xcassets */,
@@ -138,6 +134,26 @@
 				9E453C1F20BB9CB20041C219 /* Info.plist */,
 			);
 			path = ScrollViewDemoUITests;
+			sourceTree = "<group>";
+		};
+		9EE03E4C21A9D193007D5187 /* TileImageViewController */ = {
+			isa = PBXGroup;
+			children = (
+				9EE03E4D21A9D1B7007D5187 /* Tile Manager */,
+				9EE03E4221A5F379007D5187 /* TiledImageScrollView.swift */,
+				9E453BFF20BB9CB10041C219 /* TileImageViewController.swift */,
+				9EE03E4621A5F3AF007D5187 /* TilingView.swift */,
+			);
+			path = TileImageViewController;
+			sourceTree = "<group>";
+		};
+		9EE03E4D21A9D1B7007D5187 /* Tile Manager */ = {
+			isa = PBXGroup;
+			children = (
+				9EE03E4821A5F462007D5187 /* TiledImagesFileManager.swift */,
+				9EE03E4421A5F39F007D5187 /* TileManager.swift */,
+			);
+			path = "Tile Manager";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

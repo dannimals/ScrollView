@@ -25,13 +25,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "ScrollViewDemo/TileImageViewController.swift"
-            timestampString = "564529245.033546"
+            filePath = "ScrollViewDemo/TiledImagesFileManager.swift"
+            timestampString = "564777043.0579441"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "12"
-            endingLineNumber = "12"
-            landmarkName = "viewDidLoad()"
+            startingLineNumber = "52"
+            endingLineNumber = "52"
+            landmarkName = "downloadHighResImageToDisk(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -41,13 +41,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "ScrollViewDemo/TileImageViewController.swift"
-            timestampString = "564529245.034198"
+            filePath = "ScrollViewDemo/TiledImageScrollView.swift"
+            timestampString = "564777068.678688"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "18"
-            endingLineNumber = "18"
-            landmarkName = "setImages(_:tiledImagesFileManager:)"
+            startingLineNumber = "110"
+            endingLineNumber = "110"
+            landmarkName = "didDoubleTap(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -57,13 +57,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "ScrollViewDemo/TileImageViewController.swift"
-            timestampString = "564529245.034633"
+            filePath = "ScrollViewDemo/TiledImagesFileManager.swift"
+            timestampString = "564777080.635632"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "32"
-            endingLineNumber = "32"
-            landmarkName = "setupScrollView()"
+            startingLineNumber = "62"
+            endingLineNumber = "62"
+            landmarkName = "downloadHighResImageToDisk(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
