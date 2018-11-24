@@ -14,7 +14,6 @@ class TileImageViewController: UIViewController {
 
     func setImages(_ image: UIImage, tiledImagesFileManager: TiledImagesFileManager) {
         self.tiledImagesFileManager = tiledImagesFileManager
-        //        tiledImagesFileManager.delegate = self
         imageScrollView.display(image: image, tiledImagesFileManager: tiledImagesFileManager)
     }
 

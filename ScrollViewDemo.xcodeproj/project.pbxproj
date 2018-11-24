@@ -19,6 +19,7 @@
 		9EE03E4721A5F3AF007D5187 /* TilingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4621A5F3AF007D5187 /* TilingView.swift */; };
 		9EE03E4921A5F462007D5187 /* TiledImagesFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4821A5F462007D5187 /* TiledImagesFileManager.swift */; };
 		9EE03E4B21A5FB56007D5187 /* TiledImageDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4A21A5FB56007D5187 /* TiledImageDemo.swift */; };
+		9EE03E4F21A9D5F9007D5187 /* NonTileImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE03E4E21A9D5F9007D5187 /* NonTileImageViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 		9EE03E4621A5F3AF007D5187 /* TilingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TilingView.swift; sourceTree = "<group>"; };
 		9EE03E4821A5F462007D5187 /* TiledImagesFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiledImagesFileManager.swift; sourceTree = "<group>"; };
 		9EE03E4A21A5FB56007D5187 /* TiledImageDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiledImageDemo.swift; sourceTree = "<group>"; };
+		9EE03E4E21A9D5F9007D5187 /* NonTileImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonTileImageViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,6 +110,7 @@
 			isa = PBXGroup;
 			children = (
 				9EE03E4A21A5FB56007D5187 /* TiledImageDemo.swift */,
+				9EE03E4E21A9D5F9007D5187 /* NonTileImageViewController.swift */,
 				9EE03E4C21A9D193007D5187 /* TileImageViewController */,
 				9E453BFD20BB9CB10041C219 /* AppDelegate.swift */,
 				9EE03E4021A5F069007D5187 /* MainViewController.swift */,
@@ -287,6 +290,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9EE03E4B21A5FB56007D5187 /* TiledImageDemo.swift in Sources */,
+				9EE03E4F21A9D5F9007D5187 /* NonTileImageViewController.swift in Sources */,
 				9E453C0020BB9CB10041C219 /* TileImageViewController.swift in Sources */,
 				9EE03E4921A5F462007D5187 /* TiledImagesFileManager.swift in Sources */,
 				9EE03E4321A5F379007D5187 /* TiledImageScrollView.swift in Sources */,

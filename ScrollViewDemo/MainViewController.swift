@@ -46,7 +46,9 @@ class MainViewController: UIViewController {
 
     @objc
     func imageButtonTapped() {
-
+        let nonTileImageViewController = NonTileImageViewController()
+        _ = nonTileImageViewController.view
+        navigationController?.pushViewController(nonTileImageViewController, animated: true)
     }
 
 }
